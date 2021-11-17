@@ -22,16 +22,6 @@ type Block struct {
 	Nonce    uint
 }
 
-// Block difficulty
-const Difficulty = 22
-
-// Build difficulty BigInt
-func BuildDifficultyBigInt() (target *big.Int) {
-	target = big.NewInt(1)
-	target.Lsh(target, uint(256-Difficulty))
-	return
-}
-
 // Int to bytes
 func toBytes(nonce uint) []byte {
 	buff := new(bytes.Buffer)
@@ -49,8 +39,8 @@ func (b *Block) CalculateHash() Hash {
 }
 
 // Mine block
-func (b *Block) Mine() {
-	target := BuildDifficultyBigInt()
+func (b *Block) Mine(n *Network) {
+	target := n.BuildDifficultyBigInt()
 	intHash := big.NewInt(0)
 	b.Nonce = 0
 	for b.Nonce < math.MaxInt64 {
@@ -72,6 +62,6 @@ func (b *Block) Validate(target *big.Int, intHash *big.Int) bool {
 }
 
 // Validate block nonce generating buffers
-func (b *Block) ValidateSimple() bool {
-	return b.Validate(BuildDifficultyBigInt(), big.NewInt(0))
+func (b *Block) ValidateSimple(n *Network) bool {
+	return b.Validate(n.BuildDifficultyBigInt(), big.NewInt(0))
 }
