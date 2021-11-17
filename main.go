@@ -1,17 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/thzoid/broccoli/blocktree"
+)
 
 func main() {
-	tree := Tree{}
-	genesis := tree.NewBlock("genesis block", NilHash)
+	tree, genesis := blocktree.NewTree()
 	branchA1 := tree.NewBlock("foo block", genesis)
 	branchA2 := tree.NewBlock("bar block", branchA1)
 	branchA3 := tree.NewBlock("baz block", branchA2)
 	branchB1 := tree.NewBlock("strange block", genesis)
 	branchB2 := tree.NewBlock("odd block", branchB1)
-	fmt.Println("Branch A")
+	fmt.Println("\nBranch A")
 	tree.View(branchA3)
-	fmt.Println("Branch B")
+	fmt.Println("\nBranch B")
 	tree.View(branchB2)
 }
