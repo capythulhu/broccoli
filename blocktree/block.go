@@ -32,7 +32,7 @@ func BuildDifficultyBigInt() (target *big.Int) {
 	return
 }
 
-// Int to Bytes
+// Int to bytes
 func toBytes(nonce uint) []byte {
 	buff := new(bytes.Buffer)
 	err := binary.Write(buff, binary.BigEndian, int64(nonce))
@@ -51,9 +51,10 @@ func (b *Block) CalculateHash() Hash {
 // Mine block
 func (b *Block) Mine() {
 	target := BuildDifficultyBigInt()
+	intHash := big.NewInt(0)
 	b.Nonce = 0
 	for b.Nonce < math.MaxInt64 {
-		if b.Validate(target) {
+		if b.Validate(target, intHash) {
 			break
 		} else {
 			b.Nonce++
@@ -63,11 +64,14 @@ func (b *Block) Mine() {
 }
 
 // Validate block nonce
-func (b *Block) Validate(target *big.Int) bool {
-	var intHash big.Int
-
+func (b *Block) Validate(target *big.Int, intHash *big.Int) bool {
 	hash := b.CalculateHash()
 	intHash.SetBytes(hash[:])
 
 	return intHash.Cmp(target) == -1
+}
+
+// Validate block nonce generating buffers
+func (b *Block) ValidateSimple() bool {
+	return b.Validate(BuildDifficultyBigInt(), big.NewInt(0))
 }

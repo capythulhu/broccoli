@@ -17,4 +17,5 @@ func main() {
 	tree.View(branchA3)
 	fmt.Println("\nBranch B")
 	tree.View(branchB2)
+	fmt.Println("is genesis valid?", tree[genesis].ValidateSimple())
 }
