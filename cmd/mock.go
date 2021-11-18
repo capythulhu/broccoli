@@ -11,7 +11,7 @@ import (
 	"github.com/thzoid/broccoli/blocktree"
 )
 
-var dlog *log.Logger = log.New(os.Stdout, "| ", 0)
+var dlog *log.Logger = log.New(os.Stdout, "", 0)
 var wlog *log.Logger = log.New(os.Stdout, "warning: ", 0)
 
 // mockCmd represents the test command
@@ -19,7 +19,7 @@ var mockCmd = &cobra.Command{
 	Use:   "mock",
 	Short: "run a mock Blocktree with random data",
 	Long: `create and run a sample Blocktree with randomly
-	generated data for each block. Can be used for quickly
+	generated data for each block. can be used for quickly
 	setting up a mock environment.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		difficulty, _ := cmd.PersistentFlags().GetUint8("difficulty")
@@ -33,13 +33,13 @@ var mockCmd = &cobra.Command{
 			blocks = 1
 		}
 
-		tree, genesis := blocktree.NewTree(&blocktree.Network{Difficulty: difficulty})
-		dlog.Printf("root: %x", genesis)
+		tree, root := blocktree.NewTree(&blocktree.Network{Difficulty: difficulty})
+		dlog.Printf("root: %x", root)
 
 		for i := uint16(0); i < branches; i++ {
 			dlog.Printf("branch %d:\n", i)
 			blocksOnBranch := uint16(math.Ceil(float64(rand.Float32() * float32(blocks))))
-			previousBlock := genesis
+			previousBlock := root
 			for j := uint16(0); j < blocksOnBranch; j++ {
 				data, _ := uuid.NewRandom()
 				previousBlock = tree.NewBlock(data.String(), previousBlock)

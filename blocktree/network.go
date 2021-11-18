@@ -5,6 +5,8 @@ import "math/big"
 // Network struct
 type Network struct {
 	Difficulty byte
+	Reward     uint64
+	UTXOs      map[string]TxOutput
 }
 
 // Build difficulty BigInt

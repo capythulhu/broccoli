@@ -4,22 +4,17 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/gob"
 	"log"
 	"math"
 	"math/big"
 )
 
-// Hash
-type Hash [32]byte
-
-// Nil Hash
-var NilHash = Hash{}
-
 // Block
 type Block struct {
-	Data     []byte
-	Previous Hash
-	Nonce    uint
+	Transactions []*Transaction
+	Previous     Hash
+	Nonce        uint
 }
 
 // Int to bytes
@@ -32,9 +27,30 @@ func toBytes(nonce uint) []byte {
 	return buff.Bytes()
 }
 
+// Serialize block
+func (b *Block) Serialize() []byte {
+	var res bytes.Buffer
+	encoder := gob.NewEncoder(&res)
+
+	err := encoder.Encode(b)
+
+	panic(err)
+	return res.Bytes()
+}
+
+// Get Transactions hash
+func (b *Block) CalculateTxsHash() Hash {
+	var hashes [][]byte
+	for _, t := range b.Transactions {
+		hashes = append(hashes, t.ID[:])
+	}
+	return sha256.Sum256(bytes.Join(hashes, []byte{}))
+}
+
 // Calculate block hash
 func (b *Block) CalculateHash() Hash {
-	info := bytes.Join([][]byte{b.Data, b.Previous[:], toBytes(b.Nonce)}, []byte{})
+	txsHash := b.CalculateTxsHash()
+	info := bytes.Join([][]byte{b.Previous[:], toBytes(b.Nonce), txsHash[:]}, []byte{})
 	return sha256.Sum256(info)
 }
 
