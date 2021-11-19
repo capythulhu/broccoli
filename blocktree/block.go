@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
-	"encoding/gob"
 	"log"
 	"math"
 	"math/big"
@@ -25,17 +24,6 @@ func toBytes(nonce uint) []byte {
 		log.Panic(err)
 	}
 	return buff.Bytes()
-}
-
-// Serialize block
-func (b *Block) Serialize() []byte {
-	var res bytes.Buffer
-	encoder := gob.NewEncoder(&res)
-
-	err := encoder.Encode(b)
-
-	panic(err)
-	return res.Bytes()
 }
 
 // Get Transactions hash

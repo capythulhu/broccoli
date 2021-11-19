@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"os"
 
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/thzoid/broccoli/blocktree"
 )
@@ -33,7 +32,7 @@ var mockCmd = &cobra.Command{
 			blocks = 1
 		}
 
-		tree, root := blocktree.NewTree(&blocktree.Network{Difficulty: difficulty})
+		tree, root := blocktree.NewTree(&blocktree.Network{Difficulty: difficulty}, "root-address")
 		dlog.Printf("root: %x", root)
 
 		for i := uint16(0); i < branches; i++ {
@@ -41,8 +40,7 @@ var mockCmd = &cobra.Command{
 			blocksOnBranch := uint16(math.Ceil(float64(rand.Float32() * float32(blocks))))
 			previousBlock := root
 			for j := uint16(0); j < blocksOnBranch; j++ {
-				data, _ := uuid.NewRandom()
-				previousBlock = tree.NewBlock(data.String(), previousBlock)
+				previousBlock = tree.NewBlock([]*blocktree.Transaction{}, previousBlock)
 			}
 			tree.View(previousBlock)
 		}
