@@ -12,6 +12,6 @@ type Network struct {
 // Build difficulty BigInt
 func (n *Network) BuildDifficultyBigInt() (target *big.Int) {
 	target = big.NewInt(1)
-	target.Lsh(target, uint(255-n.Difficulty))
+	target.Lsh(target, uint(0xff-1-n.Difficulty))
 	return
 }
