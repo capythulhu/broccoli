@@ -11,7 +11,7 @@ import (
 type MintedBlock struct {
 	tree *Blocktree
 	// Actual block data
-	transactions []Transaction
+	transactions map[string]Transaction
 	previous     Hash
 	nonce        uint
 }
@@ -22,8 +22,13 @@ func (b *MintedBlock) Previous() Hash {
 }
 
 // Get block transactions
-func (b *MintedBlock) Transactions() []Transaction {
-	return b.transactions
+func (b *MintedBlock) Transactions() map[string]Transaction {
+	// Copy map values
+	result := map[string]Transaction{}
+	for k, v := range b.transactions {
+		result[k] = v
+	}
+	return result
 }
 
 // Calculate block hash
@@ -37,7 +42,7 @@ func (b *MintedBlock) Hash() Hash {
 	txsHash := sha256.Sum256(bytes.Join(hashes, []byte{}))
 	// Join block data
 	data := bytes.Join([][]byte{b.previous[:], toBytes(int64(b.nonce)), txsHash[:]}, []byte{})
-	return sha256.Sum256(data)
+	return DecodeSHA256(sha256.Sum256(data))
 }
 
 // Mine block

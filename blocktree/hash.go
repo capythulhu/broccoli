@@ -7,15 +7,18 @@ import (
 	"log"
 )
 
+// Hash bytes
+const HASH_BYTES = 32 / 8
+
 // Hash
-type Hash [32]byte
+type Hash [HASH_BYTES]byte
 
 // Nil Hash
 var NilHash = Hash{}
 
 // Fill Hash with bytes slice
-func DecodeHash(b []byte) (h Hash) {
-	copy(h[:], b[:32])
+func DecodeSHA256(b [32]byte) (h Hash) {
+	copy(h[:], b[:HASH_BYTES])
 	return
 }
 

@@ -18,7 +18,7 @@ func (tx *Transaction) Hash() Hash {
 		// Append input ID
 		buffer = append(buffer, in.ID[:]...)
 		// Append output ID
-		buffer = append(buffer, toBytes(int64(in.OutID))...)
+		buffer = append(buffer, toBytes(int64(in.Index))...)
 	}
 
 	// Append outputs to buffer
@@ -29,10 +29,10 @@ func (tx *Transaction) Hash() Hash {
 		buffer = append(buffer, toBytes(int64(out.Value))...)
 	}
 
-	return sha256.Sum256(buffer)
+	return DecodeSHA256(sha256.Sum256(buffer))
 }
 
 // Check if transaction originated from coinbase
 func (tx *Transaction) IsCoinbase() bool {
-	return len(tx.Inputs) == 1 && tx.Inputs[0].OutID == 0 && tx.Hash() == NilHash
+	return len(tx.Inputs) == 1 && tx.Inputs[0].Index == 0 && tx.Hash() == NilHash
 }

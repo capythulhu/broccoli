@@ -71,7 +71,7 @@ func (bt *Blocktree) Graft(ub UnmintedBlock, miner string) Hash {
 func (bt *Blocktree) View(branch Hash) {
 	for i, b := 0, branch; b != NilHash; i, b = i+1, bt.blocks[b].previous {
 		if bt.blocks[b].previous == NilHash {
-			fmt.Printf("╳─ #r\t%x\n", b)
+			fmt.Printf("⬛ #r\t%x\n", b)
 		} else if i == 0 {
 			fmt.Printf("┌─ #%d\t%x\n", i, b)
 		} else {
@@ -83,7 +83,7 @@ func (bt *Blocktree) View(branch Hash) {
 // Get list of unspent transactions
 func (bt *Blocktree) findUnspentTxs(address string, branch Hash) []Transaction {
 	var unspentTxs []Transaction
-	spentTxIDs := map[Hash][]int{}
+	spentTxIDs := map[Hash][]uint8{}
 
 	for b := branch; b != NilHash; b = bt.blocks[b].previous {
 		for _, tx := range bt.blocks[b].transactions {
@@ -92,7 +92,7 @@ func (bt *Blocktree) findUnspentTxs(address string, branch Hash) []Transaction {
 			for i, out := range tx.Outputs {
 				if spentTxIDs[txHash] != nil {
 					for _, spentOut := range spentTxIDs[txHash] {
-						if spentOut == i {
+						if spentOut == uint8(i) {
 							continue Outputs
 						}
 					}
@@ -103,10 +103,8 @@ func (bt *Blocktree) findUnspentTxs(address string, branch Hash) []Transaction {
 			}
 			if !tx.IsCoinbase() {
 				for _, in := range tx.Inputs {
-					if in.CanUnlock(address) {
-						inTxID := in.ID
-						spentTxIDs[txHash] = append(spentTxIDs[inTxID], in.OutID)
-					}
+					inTxID := in.ID
+					spentTxIDs[txHash] = append(spentTxIDs[inTxID], in.Index)
 				}
 			}
 		}
@@ -130,8 +128,8 @@ func (tree *Blocktree) findUTxO(address string, branch Hash) []TxOutput {
 }
 
 // Get spendable outputs for the provided wallet
-func (tree *Blocktree) findSpendableOutputs(address string, amount uint64, branch Hash) (uint64, map[Hash][]int) {
-	unspentOuts := map[Hash][]int{}
+func (tree *Blocktree) findSpendableOutputs(address string, amount uint64, branch Hash) (uint64, map[Hash][]uint8) {
+	unspentOuts := map[Hash][]uint8{}
 	unspentTxs := tree.findUnspentTxs(address, branch)
 	accumulated := uint64(0)
 
@@ -141,7 +139,7 @@ Work:
 		for i, out := range tx.Outputs {
 			if out.CanBeUnlocked(address) && accumulated < amount {
 				accumulated += out.Value
-				unspentOuts[hash] = append(unspentOuts[hash], i)
+				unspentOuts[hash] = append(unspentOuts[hash], uint8(i))
 
 				if accumulated >= amount {
 					break Work
