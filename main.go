@@ -53,6 +53,6 @@ func main() {
 	b3Hash := tree.Graft(b3, "eve")
 	BlockView(&tree, b3Hash)
 
-	fmt.Println("\nTree view")
-	tree.View(b3Hash)
+	// fmt.Println("\nTree view")
+	// tree.View(b3Hash)
 }
