@@ -3,17 +3,20 @@ package blocktree
 import (
 	"bytes"
 	"crypto/sha256"
+	"fmt"
 	"math"
 	"math/big"
+
+	"github.com/elliotchance/orderedmap"
 )
 
 // Minted block struct
 type MintedBlock struct {
 	tree *Blocktree
 	// Actual block data
-	transactions map[string]Transaction
+	transactions orderedmap.OrderedMap
 	previous     Hash
-	nonce        uint
+	nonce        uint32
 }
 
 // Get previous block hash
@@ -25,8 +28,8 @@ func (b *MintedBlock) Previous() Hash {
 func (b *MintedBlock) Transactions() map[string]Transaction {
 	// Copy map values
 	result := map[string]Transaction{}
-	for k, v := range b.transactions {
-		result[k] = v
+	for el := b.transactions.Front(); el != nil; el = el.Next() {
+		result[el.Key.(string)] = el.Value.(Transaction)
 	}
 	return result
 }
@@ -34,15 +37,18 @@ func (b *MintedBlock) Transactions() map[string]Transaction {
 // Calculate block hash
 func (b *MintedBlock) Hash() Hash {
 	// Calculate transactions hash
-	var hashes [][]byte
-	for _, t := range b.transactions {
-		hash := t.Hash()
-		hashes = append(hashes, hash[:])
+	hashes := make([][]byte, b.transactions.Len())
+	for i, el := 0, b.transactions.Front(); el != nil; i, el = i+1, el.Next() {
+		hash := el.Value.(Transaction).Hash()
+		hashes[i] = hash[:]
 	}
 	txsHash := sha256.Sum256(bytes.Join(hashes, []byte{}))
 	// Join block data
-	data := bytes.Join([][]byte{b.previous[:], toBytes(int64(b.nonce)), txsHash[:]}, []byte{})
-	return DecodeSHA256(sha256.Sum256(data))
+	data := bytes.Join([][]byte{b.previous[:], toBytes(b.nonce), txsHash[:]}, []byte{})
+	// Build hash
+	hash := Hash{}
+	hash.Read(sha256.Sum256(data))
+	return hash
 }
 
 // Mine block
@@ -50,13 +56,14 @@ func (b *MintedBlock) mine(n Network) {
 	target := n.BuildDifficultyBigInt()
 	intHash := big.NewInt(0)
 	b.nonce = 0
-	for b.nonce < math.MaxInt64 {
+	for b.nonce < math.MaxUint32 {
 		if b.validate(target, intHash) {
 			break
 		} else {
 			b.nonce++
 		}
 	}
+	fmt.Println("nonce:", b.nonce)
 }
 
 // Validate block nonce with external buffers

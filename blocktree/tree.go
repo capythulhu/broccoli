@@ -3,6 +3,8 @@ package blocktree
 import (
 	"errors"
 	"fmt"
+
+	"github.com/elliotchance/orderedmap"
 )
 
 // Blocktree struct
@@ -42,11 +44,16 @@ func (bt *Blocktree) Mint(ub UnmintedBlock, miner string) (*MintedBlock, error) 
 	}
 	// Add reward from coinbase to miner
 	ub.AddRewardTx(*bt, miner)
+	// Build transactions ordered map
+	txsOrderedMap := *orderedmap.NewOrderedMap()
+	for f, t := range ub.Transactions {
+		txsOrderedMap.Set(f, t)
+	}
 
 	return &MintedBlock{
 		tree: bt,
 
-		transactions: ub.Transactions,
+		transactions: txsOrderedMap,
 		previous:     ub.Previous,
 		nonce:        0,
 	}, nil
@@ -71,7 +78,7 @@ func (bt *Blocktree) Graft(ub UnmintedBlock, miner string) Hash {
 func (bt *Blocktree) View(branch Hash) {
 	for i, b := 0, branch; b != NilHash; i, b = i+1, bt.blocks[b].previous {
 		if bt.blocks[b].previous == NilHash {
-			fmt.Printf("⬛ #r\t%x\n", b)
+			fmt.Printf("╳  #r\t%x\n", b)
 		} else if i == 0 {
 			fmt.Printf("┌─ #%d\t%x\n", i, b)
 		} else {
@@ -86,7 +93,9 @@ func (bt *Blocktree) findUnspentTxs(address string, branch Hash) []Transaction {
 	spentTxIDs := map[Hash][]uint8{}
 
 	for b := branch; b != NilHash; b = bt.blocks[b].previous {
-		for _, tx := range bt.blocks[b].transactions {
+		txs := bt.blocks[b].transactions
+		for el := txs.Front(); el != nil; el = el.Next() {
+			tx := el.Value.(Transaction)
 			txHash := tx.Hash()
 		Outputs:
 			for i, out := range tx.Outputs {

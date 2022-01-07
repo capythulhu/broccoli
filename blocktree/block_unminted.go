@@ -16,14 +16,11 @@ func NewBlock(previous Hash) UnmintedBlock {
 }
 
 // Add transaction
-func (b *UnmintedBlock) AddTx(tree Blocktree, from string, outputs ...TxOutput) error {
+func (b *UnmintedBlock) AddTx(tree Blocktree, from string, output TxOutput) error {
 	var inputs []TxInput
 
 	// Calculate total amount
-	amount := uint64(0)
-	for _, r := range outputs {
-		amount += r.Value
-	}
+	amount := output.Value
 
 	// Check if there are funds to perform transaction
 	acc, validOutputs := tree.findSpendableOutputs(from, amount, b.Previous)
@@ -39,9 +36,10 @@ func (b *UnmintedBlock) AddTx(tree Blocktree, from string, outputs ...TxOutput) 
 		}
 	}
 
-	// Calculate change
-	if acc > amount {
-		outputs = append(outputs, TxOutput{from, acc - amount})
+	// Transaction final outputs
+	outputs := [2]TxOutput{
+		output,               // Receipient
+		{from, acc - amount}, // Change
 	}
 
 	// Create and append transactions
@@ -57,7 +55,7 @@ func (b *UnmintedBlock) AddRewardTx(tree Blocktree, to string) {
 	// Miner output
 	output := TxOutput{to, tree.network.Reward}
 	// Transaction
-	tx := Transaction{Inputs: []TxInput{input}, Outputs: []TxOutput{output}}
+	tx := Transaction{Inputs: []TxInput{input}, Outputs: [2]TxOutput{output}}
 	// Append transaction
 	b.Transactions["coinbase"] = tx
 }

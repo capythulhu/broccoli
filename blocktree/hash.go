@@ -8,7 +8,7 @@ import (
 )
 
 // Hash bytes
-const HASH_BYTES = 32 / 8
+const HASH_BYTES = 256 / 8
 
 // Hash
 type Hash [HASH_BYTES]byte
@@ -16,18 +16,17 @@ type Hash [HASH_BYTES]byte
 // Nil Hash
 var NilHash = Hash{}
 
-// Fill Hash with bytes slice
-func DecodeSHA256(b [32]byte) (h Hash) {
+// Fill Hash with SHA256 array
+func (h *Hash) Read(b [32]byte) {
 	copy(h[:], b[:HASH_BYTES])
-	return
 }
 
 // Int to bytes
-func toBytes(num int64) []byte {
+func toBytes(num interface{}) []byte {
 	buff := new(bytes.Buffer)
 	err := binary.Write(buff, binary.BigEndian, num)
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 	return buff.Bytes()
 }

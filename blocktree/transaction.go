@@ -7,18 +7,18 @@ import (
 // Transaction struct
 type Transaction struct {
 	Inputs  []TxInput
-	Outputs []TxOutput
+	Outputs [2]TxOutput
 }
 
 // Get transaction hash
-func (tx *Transaction) Hash() Hash {
+func (tx Transaction) Hash() Hash {
 	buffer := []byte{}
 	// Append inputs to buffer
 	for _, in := range tx.Inputs {
 		// Append input ID
 		buffer = append(buffer, in.ID[:]...)
 		// Append output ID
-		buffer = append(buffer, toBytes(int64(in.Index))...)
+		buffer = append(buffer, toBytes(in.Index)...)
 	}
 
 	// Append outputs to buffer
@@ -26,10 +26,13 @@ func (tx *Transaction) Hash() Hash {
 		// Append output ID
 		buffer = append(buffer, out.PubKey...)
 		// Append signature
-		buffer = append(buffer, toBytes(int64(out.Value))...)
+		buffer = append(buffer, toBytes(out.Value)...)
 	}
 
-	return DecodeSHA256(sha256.Sum256(buffer))
+	// Build hash
+	hash := Hash{}
+	hash.Read(sha256.Sum256(buffer))
+	return hash
 }
 
 // Check if transaction originated from coinbase
