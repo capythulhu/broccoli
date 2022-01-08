@@ -36,7 +36,7 @@ func BlockView(bt *blocktree.Blocktree, h blocktree.Hash) {
 }
 
 func main() {
-	tree, root := blocktree.NewTree(blocktree.Network{Difficulty: 16, Reward: 100}, "alice")
+	tree, root := blocktree.NewTree(blocktree.Network{Difficulty: 8, Reward: 100}, "alice")
 	BlockView(&tree, root)
 
 	b1 := blocktree.NewBlock(root)
@@ -45,17 +45,17 @@ func main() {
 
 	BlockView(&tree, b1Hash)
 
-	b2 := blocktree.NewBlock(b1Hash)
-	b2.AddTx(tree, "bob", blocktree.TxOutput{PubKey: "dave", Value: 3})
-	b2.AddTx(tree, "carol", blocktree.TxOutput{PubKey: "dave", Value: 2})
-	b2Hash := tree.Graft(b2, "carol")
-	BlockView(&tree, b2Hash)
+	// b2 := blocktree.NewBlock(b1Hash)
+	// b2.AddTx(tree, "bob", blocktree.TxOutput{PubKey: "dave", Value: 3})
+	// b2.AddTx(tree, "carol", blocktree.TxOutput{PubKey: "dave", Value: 2})
+	// b2Hash := tree.Graft(b2, "carol")
+	// BlockView(&tree, b2Hash)
 
-	b3 := blocktree.NewBlock(b2Hash)
-	b3.AddTx(tree, "carol", blocktree.TxOutput{PubKey: "alice", Value: 198})
-	b3Hash := tree.Graft(b3, "carol")
-	BlockView(&tree, b3Hash)
+	// b3 := blocktree.NewBlock(b2Hash)
+	// b3.AddTx(tree, "carol", blocktree.TxOutput{PubKey: "alice", Value: 198})
+	// b3Hash := tree.Graft(b3, "carol")
+	// BlockView(&tree, b3Hash)
 
-	fmt.Println("\nTree view")
-	tree.View(b3Hash)
+	// fmt.Println("\nTree view")
+	// tree.View(b3Hash)
 }

@@ -3,8 +3,6 @@ package blocktree
 import (
 	"errors"
 	"fmt"
-
-	"github.com/elliotchance/orderedmap"
 )
 
 // Blocktree struct
@@ -37,23 +35,18 @@ func (bt *Blocktree) Mint(ub UnmintedBlock, miner string) (*MintedBlock, error) 
 		return nil, errors.New("previous block not found")
 	}
 	// Check transactions
-	for _, t := range ub.Transactions {
-		if t.IsCoinbase() {
+	for _, t := range ub.Transactions.Keys() {
+		if val, _ := ub.Transactions.Get(t); val.(Transaction).IsCoinbase() {
 			return nil, errors.New("illegal coinbase transaction found")
 		}
 	}
 	// Add reward from coinbase to miner
 	ub.AddRewardTx(*bt, miner)
-	// Build transactions ordered map
-	txsOrderedMap := *orderedmap.NewOrderedMap()
-	for f, t := range ub.Transactions {
-		txsOrderedMap.Set(f, t)
-	}
 
 	return &MintedBlock{
 		tree: bt,
 
-		transactions: txsOrderedMap,
+		transactions: ub.Transactions,
 		previous:     ub.Previous,
 		nonce:        0,
 	}, nil

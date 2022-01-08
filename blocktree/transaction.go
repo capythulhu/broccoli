@@ -36,6 +36,6 @@ func (tx Transaction) Hash() Hash {
 }
 
 // Check if transaction originated from coinbase
-func (tx *Transaction) IsCoinbase() bool {
+func (tx Transaction) IsCoinbase() bool {
 	return len(tx.Inputs) == 1 && tx.Inputs[0].Index == 0 && tx.Hash() == NilHash
 }

@@ -3,7 +3,6 @@ package blocktree
 import (
 	"bytes"
 	"crypto/sha256"
-	"fmt"
 	"math"
 	"math/big"
 
@@ -63,7 +62,6 @@ func (b *MintedBlock) mine(n Network) {
 			b.nonce++
 		}
 	}
-	fmt.Println("nonce:", b.nonce)
 }
 
 // Validate block nonce with external buffers

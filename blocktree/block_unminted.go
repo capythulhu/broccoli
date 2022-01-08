@@ -2,17 +2,19 @@ package blocktree
 
 import (
 	"errors"
+
+	"github.com/elliotchance/orderedmap"
 )
 
 // Unminted block struct
 type UnmintedBlock struct {
-	Transactions map[string]Transaction
+	Transactions orderedmap.OrderedMap
 	Previous     Hash
 }
 
 // Create new block data
 func NewBlock(previous Hash) UnmintedBlock {
-	return UnmintedBlock{map[string]Transaction{}, previous}
+	return UnmintedBlock{*orderedmap.NewOrderedMap(), previous}
 }
 
 // Add transaction
@@ -44,7 +46,7 @@ func (b *UnmintedBlock) AddTx(tree Blocktree, from string, output TxOutput) erro
 
 	// Create and append transactions
 	tx := Transaction{Inputs: inputs, Outputs: outputs}
-	b.Transactions[from] = tx
+	b.Transactions.Set(from, tx)
 	return nil
 }
 
@@ -57,5 +59,5 @@ func (b *UnmintedBlock) AddRewardTx(tree Blocktree, to string) {
 	// Transaction
 	tx := Transaction{Inputs: []TxInput{input}, Outputs: [2]TxOutput{output}}
 	// Append transaction
-	b.Transactions["coinbase"] = tx
+	b.Transactions.Set("coinbase", tx)
 }
