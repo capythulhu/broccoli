@@ -115,20 +115,6 @@ func (bt *Blocktree) findUnspentTxs(address string, branch Hash) []Transaction {
 	return unspentTxs
 }
 
-// Get unspent transactions output
-func (tree *Blocktree) findUTxO(address string, branch Hash) []TxOutput {
-	var UTXOs []TxOutput
-	unspentTransactions := tree.findUnspentTxs(address, branch)
-	for _, tx := range unspentTransactions {
-		for _, out := range tx.Outputs {
-			if out.CanBeUnlocked(address) {
-				UTXOs = append(UTXOs, out)
-			}
-		}
-	}
-	return UTXOs
-}
-
 // Get spendable outputs for the provided wallet
 func (tree *Blocktree) findSpendableOutputs(address string, amount uint64, branch Hash) (uint64, map[Hash][]uint8) {
 	unspentOuts := map[Hash][]uint8{}

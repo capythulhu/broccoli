@@ -1,6 +1,8 @@
 package blocktree
 
-import "math/big"
+import (
+	"math/big"
+)
 
 // Network struct
 type Network struct {
@@ -12,6 +14,6 @@ type Network struct {
 // Build difficulty BigInt
 func (n *Network) BuildDifficultyBigInt() (target *big.Int) {
 	target = big.NewInt(1)
-	target.Lsh(target, uint(HASH_BYTES*8-1-n.Difficulty))
+	target.Lsh(target, uint(0xff-n.Difficulty))
 	return
 }
