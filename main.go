@@ -4,17 +4,25 @@ import (
 	"fmt"
 
 	"github.com/thzoid/broccoli/blocktree"
+	"github.com/thzoid/broccoli/hash"
+	"github.com/thzoid/broccoli/wallet"
 )
 
-func BlockView(bt *blocktree.Blocktree, h blocktree.Hash) {
+func BlockView(bt *blocktree.Blocktree, h hash.Hash) {
 	block := bt.FindBlock(h)
-	if block.Previous() == blocktree.NilHash {
+	if block.Previous() == hash.NilHash {
 		fmt.Printf("block %x (root)\n", h)
 	} else {
 		fmt.Printf("block %x\n", h)
 	}
 	for sender, tx := range block.Transactions() {
-		fmt.Printf("├─tx %x\t\t ◀ %s\n", tx.Hash(), sender)
+		var wallet string
+		if sender.IsCoinbase() {
+			wallet = "coinbase"
+		} else {
+			wallet = sender.String()
+		}
+		fmt.Printf("├─tx %x\t\t ◀ %s\n", tx.Hash(), wallet)
 		txConnector := '├'
 		for j, in := range tx.Inputs {
 			if j == len(tx.Inputs)-1 && len(tx.Outputs) == 0 {
@@ -28,7 +36,7 @@ func BlockView(bt *blocktree.Blocktree, h blocktree.Hash) {
 				txConnector = '└'
 			}
 			if out.Value > 0 {
-				fmt.Printf("│ %c─out %d\t\t ▶ %s\n", txConnector, out.Value, out.PubKey)
+				fmt.Printf("│ %c─out %d\t\t ▶ %s\n", txConnector, out.Value, out.Address.String())
 			}
 		}
 		fmt.Printf("│\n")
@@ -36,12 +44,21 @@ func BlockView(bt *blocktree.Blocktree, h blocktree.Hash) {
 }
 
 func main() {
-	tree, root := blocktree.NewTree(blocktree.Network{Difficulty: 8, Reward: 100}, "alice")
+	wallets := make([]wallet.Wallet, 10)
+	for i := range wallets {
+		wallets[i] = wallet.NewWallet()
+	}
+
+	alice := wallets[0].Address()
+	bob := wallets[1].Address()
+	carol := wallets[2].Address()
+
+	tree, root := blocktree.NewTree(blocktree.Network{Difficulty: 8, Reward: 100}, alice)
 	BlockView(&tree, root)
 
 	b1 := blocktree.NewBlock(root)
-	b1.AddTx(tree, "alice", blocktree.TxOutput{PubKey: "bob", Value: 5})
-	b1Hash := tree.Graft(b1, "carol")
+	b1.AddTx(tree, alice, blocktree.TxOutput{Address: bob, Value: 5})
+	b1Hash := tree.Graft(b1, carol)
 
 	BlockView(&tree, b1Hash)
 

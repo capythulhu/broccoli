@@ -3,6 +3,9 @@ package blocktree
 import (
 	"errors"
 	"fmt"
+
+	"github.com/thzoid/broccoli/hash"
+	"github.com/thzoid/broccoli/wallet"
 )
 
 // Blocktree struct
@@ -11,22 +14,22 @@ import (
 // allowing other functions to modify
 // the actual blocks)
 type Blocktree struct {
-	blocks  map[Hash]MintedBlock
+	blocks  map[hash.Hash]MintedBlock
 	network Network
 }
 
 // Create new tree
-func NewTree(n Network, miner string) (bt Blocktree, root Hash) {
-	bt = Blocktree{map[Hash]MintedBlock{}, n}
+func NewTree(n Network, miner wallet.Address) (bt Blocktree, root hash.Hash) {
+	bt = Blocktree{map[hash.Hash]MintedBlock{}, n}
 	// Create root block
-	root = bt.Graft(NewBlock(NilHash), miner)
+	root = bt.Graft(NewBlock(hash.NilHash), miner)
 	return
 }
 
 // Perform validations and return expected minted block to be grafted
-func (bt *Blocktree) Mint(ub UnmintedBlock, miner string) (*MintedBlock, error) {
+func (bt *Blocktree) Mint(ub UnmintedBlock, miner wallet.Address) (*MintedBlock, error) {
 	// Check if block is root but there are blocks on the tree already
-	if ub.Previous == NilHash {
+	if ub.Previous == hash.NilHash {
 		if len(bt.blocks) != 0 {
 			return nil, errors.New("multiple root blocks are not allowed")
 		}
@@ -36,7 +39,7 @@ func (bt *Blocktree) Mint(ub UnmintedBlock, miner string) (*MintedBlock, error) 
 	}
 	// Check transactions
 	for _, t := range ub.Transactions.Keys() {
-		if val, _ := ub.Transactions.Get(t); val.(Transaction).IsCoinbase() {
+		if val, _ := ub.Transactions.Get(t); val.(Transaction).IsFromCoinbase() {
 			return nil, errors.New("illegal coinbase transaction found")
 		}
 	}
@@ -53,7 +56,7 @@ func (bt *Blocktree) Mint(ub UnmintedBlock, miner string) (*MintedBlock, error) 
 }
 
 // Graft (mine and add) a block into a branch
-func (bt *Blocktree) Graft(ub UnmintedBlock, miner string) Hash {
+func (bt *Blocktree) Graft(ub UnmintedBlock, miner wallet.Address) hash.Hash {
 	// Get minted block
 	b, err := bt.Mint(ub, miner)
 	if err != nil {
@@ -68,9 +71,9 @@ func (bt *Blocktree) Graft(ub UnmintedBlock, miner string) Hash {
 }
 
 // View tree
-func (bt *Blocktree) View(branch Hash) {
-	for i, b := 0, branch; b != NilHash; i, b = i+1, bt.blocks[b].previous {
-		if bt.blocks[b].previous == NilHash {
+func (bt *Blocktree) View(branch hash.Hash) {
+	for i, b := 0, branch; b != hash.NilHash; i, b = i+1, bt.blocks[b].previous {
+		if bt.blocks[b].previous == hash.NilHash {
 			fmt.Printf("╳  #r\t%x\n", b)
 		} else if i == 0 {
 			fmt.Printf("┌─ #%d\t%x\n", i, b)
@@ -81,11 +84,11 @@ func (bt *Blocktree) View(branch Hash) {
 }
 
 // Get list of unspent transactions
-func (bt *Blocktree) findUnspentTxs(address string, branch Hash) []Transaction {
+func (bt *Blocktree) findUnspentTxs(address wallet.Address, branch hash.Hash) []Transaction {
 	var unspentTxs []Transaction
-	spentTxIDs := map[Hash][]uint8{}
+	spentTxIDs := map[hash.Hash][]uint8{}
 
-	for b := branch; b != NilHash; b = bt.blocks[b].previous {
+	for b := branch; b != hash.NilHash; b = bt.blocks[b].previous {
 		txs := bt.blocks[b].transactions
 		for el := txs.Front(); el != nil; el = el.Next() {
 			tx := el.Value.(Transaction)
@@ -103,7 +106,7 @@ func (bt *Blocktree) findUnspentTxs(address string, branch Hash) []Transaction {
 					unspentTxs = append(unspentTxs, tx)
 				}
 			}
-			if !tx.IsCoinbase() {
+			if !tx.IsFromCoinbase() {
 				for _, in := range tx.Inputs {
 					inTxID := in.ID
 					spentTxIDs[txHash] = append(spentTxIDs[inTxID], in.Index)
@@ -116,8 +119,8 @@ func (bt *Blocktree) findUnspentTxs(address string, branch Hash) []Transaction {
 }
 
 // Get spendable outputs for the provided wallet
-func (tree *Blocktree) findSpendableOutputs(address string, amount uint64, branch Hash) (uint64, map[Hash][]uint8) {
-	unspentOuts := map[Hash][]uint8{}
+func (tree *Blocktree) findSpendableOutputs(address wallet.Address, amount uint64, branch hash.Hash) (uint64, map[hash.Hash][]uint8) {
+	unspentOuts := map[hash.Hash][]uint8{}
 	unspentTxs := tree.findUnspentTxs(address, branch)
 	accumulated := uint64(0)
 
@@ -141,7 +144,7 @@ Work:
 // Find a block in the Blocktree
 // Returns a pointer to the block (not the actual reference
 // to the minted block) if found or nil otherwise
-func (bt *Blocktree) FindBlock(hash Hash) *MintedBlock {
+func (bt *Blocktree) FindBlock(hash hash.Hash) *MintedBlock {
 	b, ok := bt.blocks[hash]
 	if !ok {
 		return nil

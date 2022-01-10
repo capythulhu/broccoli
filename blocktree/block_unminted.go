@@ -4,21 +4,23 @@ import (
 	"errors"
 
 	"github.com/elliotchance/orderedmap"
+	"github.com/thzoid/broccoli/hash"
+	"github.com/thzoid/broccoli/wallet"
 )
 
 // Unminted block struct
 type UnmintedBlock struct {
 	Transactions orderedmap.OrderedMap
-	Previous     Hash
+	Previous     hash.Hash
 }
 
 // Create new block data
-func NewBlock(previous Hash) UnmintedBlock {
+func NewBlock(previous hash.Hash) UnmintedBlock {
 	return UnmintedBlock{*orderedmap.NewOrderedMap(), previous}
 }
 
 // Add transaction
-func (b *UnmintedBlock) AddTx(tree Blocktree, from string, output TxOutput) error {
+func (b *UnmintedBlock) AddTx(tree Blocktree, from wallet.Address, output TxOutput) error {
 	var inputs []TxInput
 
 	// Calculate total amount
@@ -51,13 +53,13 @@ func (b *UnmintedBlock) AddTx(tree Blocktree, from string, output TxOutput) erro
 }
 
 // Add reward transaction
-func (b *UnmintedBlock) AddRewardTx(tree Blocktree, to string) {
+func (b *UnmintedBlock) AddRewardTx(tree Blocktree, to wallet.Address) {
 	// Coinbase input
-	input := TxInput{NilHash, 0}
+	input := TxInput{hash.NilHash, 0}
 	// Miner output
 	output := TxOutput{to, tree.network.Reward}
 	// Transaction
 	tx := Transaction{Inputs: []TxInput{input}, Outputs: [2]TxOutput{output}}
 	// Append transaction
-	b.Transactions.Set("coinbase", tx)
+	b.Transactions.Set(wallet.CoinbaseAddress(), tx)
 }

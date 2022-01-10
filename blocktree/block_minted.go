@@ -7,6 +7,8 @@ import (
 	"math/big"
 
 	"github.com/elliotchance/orderedmap"
+	"github.com/thzoid/broccoli/hash"
+	"github.com/thzoid/broccoli/wallet"
 )
 
 // Minted block struct
@@ -14,27 +16,27 @@ type MintedBlock struct {
 	tree *Blocktree
 	// Actual block data
 	transactions orderedmap.OrderedMap
-	previous     Hash
+	previous     hash.Hash
 	nonce        uint32
 }
 
 // Get previous block hash
-func (b *MintedBlock) Previous() Hash {
+func (b *MintedBlock) Previous() hash.Hash {
 	return b.previous
 }
 
 // Get block transactions
-func (b *MintedBlock) Transactions() map[string]Transaction {
+func (b *MintedBlock) Transactions() map[wallet.Address]Transaction {
 	// Copy map values
-	result := map[string]Transaction{}
+	result := map[wallet.Address]Transaction{}
 	for el := b.transactions.Front(); el != nil; el = el.Next() {
-		result[el.Key.(string)] = el.Value.(Transaction)
+		result[el.Key.(wallet.Address)] = el.Value.(Transaction)
 	}
 	return result
 }
 
 // Calculate block hash
-func (b *MintedBlock) Hash() Hash {
+func (b *MintedBlock) Hash() hash.Hash {
 	// Calculate transactions hash
 	hashes := make([][]byte, b.transactions.Len())
 	for i, el := 0, b.transactions.Front(); el != nil; i, el = i+1, el.Next() {
@@ -45,8 +47,8 @@ func (b *MintedBlock) Hash() Hash {
 	// Join block data
 	data := bytes.Join([][]byte{b.previous[:], toBytes(b.nonce), txsHash[:]}, []byte{})
 	// Build hash
-	hash := Hash{}
-	hash.Read(sha256.Sum256(data))
+	hash := hash.Hash{}
+	hash.SHA256(data)
 	return hash
 }
 
