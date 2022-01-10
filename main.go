@@ -9,11 +9,11 @@ import (
 )
 
 func BlockView(bt *blocktree.Blocktree, h hash.Hash) {
-	block := bt.FindBlock(h)
+	block := bt.Block(h)
 	if block.Previous() == hash.NilHash {
-		fmt.Printf("block %x (root)\n", h)
+		fmt.Printf("block %s (root)\n", h.String())
 	} else {
-		fmt.Printf("block %x\n", h)
+		fmt.Printf("block %s\n", h.String())
 	}
 	for sender, tx := range block.Transactions() {
 		var wallet string
@@ -22,13 +22,13 @@ func BlockView(bt *blocktree.Blocktree, h hash.Hash) {
 		} else {
 			wallet = sender.String()
 		}
-		fmt.Printf("├─tx %x\t\t ◀ %s\n", tx.Hash(), wallet)
+		fmt.Printf("├─tx %s\t\t ◀ %s\n", tx.Hash().String(), wallet)
 		txConnector := '├'
 		for j, in := range tx.Inputs {
 			if j == len(tx.Inputs)-1 && len(tx.Outputs) == 0 {
 				txConnector = '└'
 			}
-			fmt.Printf("│ %c─in  %x[%d]\n", txConnector, in.ID, in.Index)
+			fmt.Printf("│ %c─in  %s[%d]\n", txConnector, in.ID.String(), in.Index)
 		}
 		noChange := tx.Outputs[1].Value == 0
 		for j, out := range tx.Outputs {
@@ -79,25 +79,18 @@ func main() {
 	bob := wallets[1].Address()
 	carol := wallets[2].Address()
 
-	tree, root := blocktree.NewTree(blocktree.Network{Difficulty: 8, Reward: 100}, alice)
+	fmt.Println("alice\t" + alice.String())
+	fmt.Println("bob\t" + bob.String())
+	fmt.Println("carol\t" + carol.String())
+	fmt.Print("\n")
+
+	tree, root := blocktree.NewTree(blocktree.Network{Difficulty: 1, Reward: 100}, alice)
 	BlockView(&tree, root)
 
 	b1 := blocktree.NewBlock(root)
 	b1.AddTx(tree, alice, blocktree.TxOutput{Address: bob, Value: 5})
 	b1Hash := tree.Graft(b1, carol)
-
 	BlockView(&tree, b1Hash)
-
-	// b2 := blocktree.NewBlock(b1Hash)
-	// b2.AddTx(tree, "bob", blocktree.TxOutput{PubKey: "dave", Value: 3})
-	// b2.AddTx(tree, "carol", blocktree.TxOutput{PubKey: "dave", Value: 2})
-	// b2Hash := tree.Graft(b2, "carol")
-	// BlockView(&tree, b2Hash)
-
-	// b3 := blocktree.NewBlock(b2Hash)
-	// b3.AddTx(tree, "carol", blocktree.TxOutput{PubKey: "alice", Value: 198})
-	// b3Hash := tree.Graft(b3, "carol")
-	// BlockView(&tree, b3Hash)
 
 	// fmt.Println("\nTree view")
 	// tree.View(b3Hash)

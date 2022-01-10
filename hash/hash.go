@@ -2,7 +2,7 @@ package hash
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
+	"fmt"
 )
 
 // Hash
@@ -27,6 +27,6 @@ func (h *Hash) Read(b []byte) {
 }
 
 // Encode to string
-func (h *Hash) String() string {
-	return hex.EncodeToString(h[:])
+func (h Hash) String() string {
+	return fmt.Sprintf("%x", h[:])
 }
