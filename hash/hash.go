@@ -6,7 +6,7 @@ import (
 )
 
 // Hash
-type Hash [0xff / 010]byte
+type Hash [(0xff + 1) / 010]byte
 
 // Nil Hash
 var NilHash = Hash{}
