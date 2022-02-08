@@ -34,7 +34,7 @@ func (bt *Blocktree) Mint(ub UnmintedBlock, miner wallet.Address) (*MintedBlock,
 			return nil, errors.New("multiple root blocks are not allowed")
 		}
 		// Check if block exists
-	} else if bt.FindBlock(ub.Previous) == nil {
+	} else if bt.Block(ub.Previous) == nil {
 		return nil, errors.New("previous block not found")
 	}
 	// Check transactions
@@ -144,7 +144,7 @@ Work:
 // Find a block in the Blocktree
 // Returns a pointer to the block (not the actual reference
 // to the minted block) if found or nil otherwise
-func (bt *Blocktree) FindBlock(hash hash.Hash) *MintedBlock {
+func (bt *Blocktree) Block(hash hash.Hash) *MintedBlock {
 	b, ok := bt.blocks[hash]
 	if !ok {
 		return nil

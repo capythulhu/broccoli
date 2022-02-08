@@ -21,12 +21,12 @@ type MintedBlock struct {
 }
 
 // Get previous block hash
-func (b *MintedBlock) Previous() hash.Hash {
+func (b MintedBlock) Previous() hash.Hash {
 	return b.previous
 }
 
 // Get block transactions
-func (b *MintedBlock) Transactions() map[wallet.Address]Transaction {
+func (b MintedBlock) Transactions() map[wallet.Address]Transaction {
 	// Copy map values
 	result := map[wallet.Address]Transaction{}
 	for el := b.transactions.Front(); el != nil; el = el.Next() {
@@ -36,7 +36,7 @@ func (b *MintedBlock) Transactions() map[wallet.Address]Transaction {
 }
 
 // Calculate block hash
-func (b *MintedBlock) Hash() hash.Hash {
+func (b MintedBlock) Hash() hash.Hash {
 	// Calculate transactions hash
 	hashes := make([][]byte, b.transactions.Len())
 	for i, el := 0, b.transactions.Front(); el != nil; i, el = i+1, el.Next() {
@@ -67,7 +67,7 @@ func (b *MintedBlock) mine(n Network) {
 }
 
 // Validate block nonce with external buffers
-func (b *MintedBlock) validate(target *big.Int, intHash *big.Int) bool {
+func (b MintedBlock) validate(target *big.Int, intHash *big.Int) bool {
 	hash := b.Hash()
 	intHash.SetBytes(hash[:])
 
