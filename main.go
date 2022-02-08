@@ -11,9 +11,9 @@ import (
 func BlockView(bt *blocktree.Blocktree, h hash.Hash) {
 	block := bt.Block(h)
 	if block.Previous() == hash.NilHash {
-		fmt.Printf("block %.64x (root)\n", h)
+		fmt.Printf("block %s (root)\n", h.String())
 	} else {
-		fmt.Printf("block %.64x\n", h)
+		fmt.Printf("block %s\n", h.String())
 	}
 	for sender, tx := range block.Transactions() {
 		var wallet string
@@ -58,7 +58,7 @@ func main() {
 	fmt.Println("carol\t" + carol.String())
 	fmt.Print("\n")
 
-	tree, root := blocktree.NewTree(blocktree.Network{Difficulty: 1, Reward: 100}, alice)
+	tree, root := blocktree.NewTree(blocktree.Network{Difficulty: 8, Reward: 100}, alice)
 	BlockView(&tree, root)
 
 	b1 := blocktree.NewBlock(root)
